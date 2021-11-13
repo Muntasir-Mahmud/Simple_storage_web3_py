@@ -11,7 +11,7 @@ install_solc("0.6.0")
 compile_sol = compile_standard(
     {
         "language": "Solidity",
-        "sources": {"SimpleSrorage.sol": {"content": simple_storage_file}},
+        "sources": {"SimpleStorage.sol": {"content": simple_storage_file}},
         "settings": {
             "outputSelection": {
                 "*": {"*": ["abi", "metadata", "evm.bytecode", "evm.sourceMap"]}
