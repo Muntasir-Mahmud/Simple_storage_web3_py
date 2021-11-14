@@ -1,6 +1,11 @@
 import json
+import os
 
+from dotenv import load_dotenv
 from solcx import compile_standard, install_solc
+from web3 import Web3
+
+load_dotenv()
 
 with open("./SimpleStorage.sol", "r") as file:
     simple_storage_file = file.read()
@@ -32,3 +37,29 @@ bytecode = compile_sol["contracts"]["SimpleStorage.sol"]["SimpleStorage"]["evm"]
 
 # get ABI
 abi = compile_sol["contracts"]["SimpleStorage.sol"]["SimpleStorage"]["abi"]
+
+# for connecting to ganache
+w3 = Web3(Web3.HTTPProvider("HTTP://127.0.0.1:7545"))
+chain_id = 1337
+my_address = "0x5da0Eaf23B5c5Db5330F78310b4a87Ac0488c989"
+private_key = os.getenv("PRIVATE_KEY")
+
+# Create the contract in python
+SimpleStorage = w3.eth.contract(abi=abi, bytecode=bytecode)
+
+# get the latest transaction, not the mining nonce
+nonce = w3.eth.getTransactionCount(my_address)
+
+# 1. Bild a tracsaction
+transaction = SimpleStorage.constructor().buildTransaction(
+    {"chainId": chain_id, "from": my_address, "nonce": nonce}
+)
+
+# 2. Sign the tracsaction
+signed_txn = w3.eth.account.sign_transaction(transaction, private_key=private_key)
+
+# 3. Send the signed transaction
+tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+
+# block conformation
+tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
